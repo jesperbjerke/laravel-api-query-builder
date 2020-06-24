@@ -56,13 +56,13 @@ public function index(Request $request)
 Most methods include an `or` counterpart, that will allow you to create OR statements in your queries. Just like Eloquent.
 For example `where` and `orWhere`.
 
-- [where](#where-orwhere)
-- [whereIn](#wherein-orwherein)
-- [whereNotIn](#wherenotin-orwherenotin)
-- [whereBetween](#wherebetween-orwherebetween)
-- [whereNotBetween](#wherenotbetween-orwherenotbetween)
-- [whereHas](#wherehas-orwherehas)
-- [whereDoesntHave](#wheredoesnthave-orwheredoesnthave)
+- [where](#where--orwhere)
+- [whereIn](#wherein--orwherein)
+- [whereNotIn](#wherenotin--orwherenotin)
+- [whereBetween](#wherebetween--orwherebetween)
+- [whereNotBetween](#wherenotbetween--orwherenotbetween)
+- [whereHas](#wherehas--orwherehas)
+- [whereDoesntHave](#wheredoesnthave--orwheredoesnthave)
 - [search](#search)
 - [select](#select)
 - [orderBy](#orderby)
@@ -71,7 +71,7 @@ For example `where` and `orWhere`.
 - [with](#with)
 - [appends](#appends)
 - [counts](#counts)
-- [pagination](#pagination-per_page)
+- [pagination](#pagination--per_page)
 
 ---
 
