@@ -82,12 +82,12 @@ The following will do an exact match where `first_name` equals `test`
 ```
 ?where[first_name]=test
 ```
-You can also do more advanced mathing by defining an operator (`=`, `!=`, `like`). When defining an operator you also need to define a `value` parameter.
+You can also do more advanced matching by defining an operator (`=`, `!=`, `like`). When defining an operator you also need to define a `value` parameter.
 The following will perform a `like` query matching on `%test%`
 ```
 ?where[first_name][value]=%25test%25&where[first_name][operator]=like
 ```
-These methods are recursive. Meaning you can wrap multiple statements in a parent "where" to match all statements in it.
+__These methods are recursive. Meaning you can wrap multiple statements in a parent "where" to match all statements in it.__
 
 ---
 
