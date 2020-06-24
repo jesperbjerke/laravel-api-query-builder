@@ -319,7 +319,7 @@ To adjust the number of results per page
 ## Defining allowed fields, relations, appendable attributes and counts
 
 To avoid exposing everything on your models, you will have to define each relation, appended attribute or count that you want to be queryable.
-The validation basically works the same on all of them. The only exception is allowedApiFields`, where there is a default to allow all standard fields. After including the `QueryBuilderModelTrait` in your model, you can add the following methods to it:
+The validation basically works the same on all of them. The only exception is `allowedApiFields`, where there is a default to allow all standard fields. After including the `QueryBuilderModelTrait` in your model, you can add the following methods to it:
 
 ```php
 // ...
