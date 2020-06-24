@@ -1,0 +1,41 @@
+{
+    "name": "bjerke/api-query-builder",
+    "description": "A query builder for Laravel that parses the request and uses Eloquent ORM to query database",
+    "keywords": [
+        "jesperbjerke",
+        "querybuilder",
+        "api",
+        "eloquent",
+        "query",
+        "builder",
+        "orm",
+        "rest",
+        "laravel"
+    ],
+    "license": "MIT",
+    "type": "library",
+    "authors": [
+        {
+            "name": "Jesper Bjerke",
+            "email": "jesper.bjerke@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.2",
+        "illuminate/support": "^7.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Bjerke\\ApiQueryBuilder\\": "src"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Bjerke\\ApiQueryBuilder\\QueryBuilderServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
