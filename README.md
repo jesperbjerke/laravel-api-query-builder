@@ -1,4 +1,4 @@
-# WA Laravel ApiQueryBuilder
+# Laravel ApiQueryBuilder
 
 A library to enable the frontend to query models in a very dynamic way, mimicking the Eloquent ORM.
 
