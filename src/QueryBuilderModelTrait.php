@@ -79,9 +79,9 @@ trait QueryBuilderModelTrait
     public function validatedApiFields($requestedFields = []): array
     {
         $validatedApiFields = [];
-        $allowedApiFields = $this->allowedApiRelations();
+        $allowedApiFields = $this->allowedApiFields();
 
-        if (in_array('*', $requestedFields, true)) {
+        if (in_array('*', $allowedApiFields, true)) {
             return $requestedFields;
         }
 
