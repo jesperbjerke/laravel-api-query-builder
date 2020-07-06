@@ -197,7 +197,7 @@ Order the result based on one or more columns.
 ```
 or multiple columns
 ```
-?orderBy[][first_name]=desc&orderBy[][created_at]=desc
+?orderBy[first_name]=desc&orderBy[created_at]=desc
 ```
 Define the order with `desc` or `asc`. There is also a specialized order called `localizedDesc` and `localizedDesc` that will run the ordering with a preconfigured collation based on current locale. Read more about [configuration](#configuration).
 
