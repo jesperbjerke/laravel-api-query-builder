@@ -278,7 +278,8 @@ class QueryBuilder
     }
 
     /**
-     * Performs all queries, runs recursively on where/orWhere
+     * Initiates recursive query, wraps all queries in its own
+     * where-statement to isolate external queries others added later on
      *
      * @param Builder       $query
      * @param array         $params
@@ -289,14 +290,36 @@ class QueryBuilder
      */
     private function queryRecursive(Builder $query, $params, $subMethod = null)
     {
+        $hasQuery = !empty(array_intersect($this->queryMethods, array_keys($params)));
+        if (!$hasQuery) {
+            return $query;
+        }
+
+        $query->where(function ($query) use ($params, $subMethod) {
+            $this->loopNestedQuery($query, $params, $subMethod);
+        });
+
+        return $query;
+    }
+
+    /**
+     * Loops queries, wraps in nested statements
+     *
+     * @param Builder       $query
+     * @param array         $params
+     * @param null|string   $subMethod
+     *
+     * @return Builder
+     * @throws \Exception
+     */
+    private function loopNestedQuery(Builder $query, $params, $subMethod = null)
+    {
         if ($subMethod !== null) {
             if (in_array($subMethod, $this->queryMethods, true)) {
                 $query->{$subMethod}(function ($query) use ($params, $subMethod) {
                     foreach ($params as $method => $columns) {
                         if (in_array($method, $this->queryMethods, true)) {
-                            foreach ($columns as $column => $value) {
-                                $this->performQuery($query, $method, $column, $value);
-                            }
+                            $this->performNestedQuery($query, $method, $columns);
                         } else {
                             $this->performQuery($query, $subMethod, $method, $columns);
                         }
@@ -306,24 +329,37 @@ class QueryBuilder
         } else {
             foreach ($params as $method => $columns) {
                 if (in_array($method, $this->queryMethods, true)) {
-                    switch ($method) {
-                        case 'where':
-                        case 'orWhere':
-                            $this->queryRecursive($query, $columns, $method);
-                            break;
-                        case 'search':
-                            $query = $this->performQuery($query, $method, $columns, null);
-                            break;
-                        default:
-                            foreach ($columns as $column => $value) {
-                                $query = $this->performQuery($query, $method, $column, $value);
-                            }
-                    }
+                    $this->performNestedQuery($query, $method, $columns);
                 }
             }
         }
+    }
 
-        return $query;
+    /**
+     * Performs all queries, runs recursively on where/orWhere
+     *
+     * @param Builder       $query
+     * @param array         $params
+     * @param null|string   $subMethod
+     *
+     * @return Builder
+     * @throws \Exception
+     */
+    private function performNestedQuery(Builder $query, $method, $columns)
+    {
+        switch ($method) {
+            case 'where':
+            case 'orWhere':
+                $this->loopNestedQuery($query, $columns, $method);
+                break;
+            case 'search':
+                $query = $this->performQuery($query, $method, $columns, null);
+                break;
+            default:
+                foreach ($columns as $column => $value) {
+                    $query = $this->performQuery($query, $method, $column, $value);
+                }
+        }
     }
 
     /**
