@@ -1,0 +1,16 @@
+*.sw[mnpcod]
+*.log
+*.tmp
+*.tmp.*
+log.txt
+*.sublime-project
+*.sublime-workspace
+.vscode/
+
+.idea/
+.sourcemaps/
+.sass-cache/
+.tmp/
+
+.DS_Store
+Thumbs.db

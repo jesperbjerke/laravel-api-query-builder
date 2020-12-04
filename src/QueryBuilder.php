@@ -59,22 +59,10 @@ class QueryBuilder
         $params = $this->request->all();
         $query = $this->queryRecursive($query, $params);
 
-        /**
-         * Eager load with
-         */
         if (($with = $this->request->get('with')) !== null) {
-            if (is_string($with)) {
-                $with = explode(',', $with);
-            }
-
-            $query->with($this->model->validatedApiRelations(array_map(static function ($relation) {
-                return Str::camel($relation);
-            }, $with)));
+            $this->setWith($query, $with, $this->request->get('select'));
         }
 
-        /**
-         * Appended attributes
-         */
         if (($appends = $this->request->get('appends')) !== null) {
             if (is_string($appends)) {
                 $appends = explode(',', $appends);
@@ -83,81 +71,20 @@ class QueryBuilder
             $this->model::mergeAppends($this->model->validatedApiAppends($appends));
         }
 
-        /**
-         * Selects
-         */
         if (($select = $this->request->get('select')) !== null) {
-            if (is_string($select)) {
-                $select = explode(',', $select);
-            }
-
-            $compiledSelects = $this->model->validatedApiFields(ColumnNameSanitizer::sanitizeArray($select));
-
-            $table = $this->model->getTable();
-            $query->select(array_map(static function ($column) use ($table) {
-                if (strpos($column, '.') === false) {
-                    $column = $table . '.' . $column;
-                }
-                return $column;
-            }, $compiledSelects));
+           $this->setSelect($query, $select);
         }
 
-        /**
-         * Relation counts
-         */
         if (($counts = $this->request->get('counts')) !== null) {
-            if (is_string($counts)) {
-                $counts = explode(',', $counts);
-                $compiledCounts = $this->model->validatedApiCounts(array_map(static function ($relation) {
-                    return Str::camel($relation);
-                }, $counts));
-            } else {
-                $compiledCounts = [];
-                $allowedApiCounts = $this->model->allowedApiCounts();
-                foreach ($counts as $relation => $countQuery) {
-                    $countRelation = Str::camel((is_string($relation)) ? $relation : $countQuery);
-
-                    if (!in_array($countRelation, $allowedApiCounts, true)) {
-                        continue;
-                    }
-
-                    if (is_array($countQuery)) {
-                        $compiledCounts[$countRelation] = function (Builder $query) use ($countQuery) {
-                            $this->queryRecursive($query, $countQuery);
-                        };
-                    } else {
-                        $compiledCounts[] = $countRelation;
-                    }
-                }
-            }
-
-            $query->withCount($compiledCounts);
+            $this->setCounts($query, $counts);
         }
 
-        /**
-         * Order by
-         */
         if (($orderBy = ($this->request->get('orderBy') ?? $this->request->get('order_by'))) !== null) {
-            if (is_string($orderBy)) {
-                $orderBy = explode(',', $orderBy);
-                $this->setOrder($query, $orderBy[0], $orderBy[1]);
-            } else {
-                foreach ($orderBy as $column => $order) {
-                    $this->setOrder($query, $column, $order);
-                }
-            }
+            $this->setOrderBy($query, $orderBy);
         }
 
-        /**
-         * Group by
-         */
         if (($groupBy = ($this->request->get('groupBy') ?? $this->request->get('group_by'))) !== null) {
-            if (is_string($groupBy)) {
-                $groupBy = explode(',', $groupBy);
-                $query->groupBy(ColumnNameSanitizer::sanitizeArray($groupBy));
-            } else {
-                $query->groupBy(ColumnNameSanitizer::sanitizeArray($groupBy));
-            }
+            $this->setGroupBy($query, $groupBy);
         }
 
         if (($limit = $this->request->get('limit')) !== null &&
@@ -171,8 +98,202 @@ class QueryBuilder
     }
 
     /**
-     * Sets orderBy on provided query
+     * @param Builder $query
+     * @param array|string $with
+     * @param null|array|string $select
      *
+     * @return Builder
+     */
+    private function setWith(Builder $query, $with, $select = null)
+    {
+        if (is_string($with)) {
+            $with = explode(',', $with);
+        }
+
+        $formattedRelationSelect = [];
+        if ($select !== null) {
+            if (is_string($select)) {
+                $select = explode(',', $select);
+            }
+
+            $select = array_filter(
+                $select,
+                static function ($column) {
+                    return (strpos($column, '.') !== false);
+                }
+            );
+
+            foreach ($select as $nestedSelect) {
+                $stack = explode('.', $nestedSelect);
+                $column = array_pop($stack);
+                $relation = Str::camel(join('.', $stack));
+
+                if (!array_key_exists($relation, $formattedRelationSelect)) {
+                    $formattedRelationSelect[$relation] = [];
+                }
+
+                $formattedRelationSelect[$relation][] = ColumnNameSanitizer::sanitize($column);
+            }
+        }
+
+        $queriedRelations = $this->model->validatedApiRelations(array_map(static function ($relation) {
+            return Str::camel($relation);
+        }, $with));
+
+        if (empty($formattedRelationSelect)) {
+            return $query->with($queriedRelations);
+        }
+
+        $relationQueries = [];
+        foreach ($queriedRelations as $queriedRelation) {
+            $validatedQueries = $this->validateRelationSelect($this->model, $queriedRelation, $formattedRelationSelect);
+            foreach ($validatedQueries as $relationQuery => $relationSelect) {
+                if ($relationSelect && !empty($relationSelect)) {
+                    $relationQueries[$relationQuery] = static function ($query) use ($relationSelect) {
+                        $query->select($relationSelect);
+                    };
+                } else {
+                    $relationQueries[] = $relationQuery;
+                }
+            }
+        }
+
+        if (!empty($relationQueries)) {
+            $query->with($relationQueries);
+        }
+    }
+
+    /**
+     * @param Model $model
+     * @param string $relations
+     * @param array $select
+     * @param null|string $currentStack
+     *
+     * @return array
+     */
+    private function validateRelationSelect($model, $relations, $select = [], $currentStack = null)
+    {
+        $validatedRelations = [];
+
+        $stack = explode('.', $currentStack ?? $relations);
+        $thisRelation = array_shift($stack);
+        $relationModel = $model->{$thisRelation}()->getRelated();
+        $nextStack = implode('.', $stack);
+        $queryStack = rtrim(Str::replaceLast($nextStack, '', $relations), '.');
+
+        if (array_key_exists($queryStack, $select)) {
+            $validatedRelations[$queryStack] = $relationModel->validatedApiFields($select[$queryStack]);
+        } else {
+            $validatedRelations[$queryStack] = null;
+        }
+
+        if (!empty($stack)) {
+            $validatedRelations = array_merge(
+                $validatedRelations,
+                $this->validateRelationSelect(
+                    $relationModel,
+                    $relations,
+                    $select,
+                    implode('.', $stack)
+                )
+            );
+        }
+
+        return $validatedRelations;
+    }
+
+    /**
+     * @param Builder $query
+     * @param array|string $select
+     *
+     * @return Builder
+     */
+    private function setSelect(Builder $query, $select)
+    {
+        if (is_string($select)) {
+            $select = explode(',', $select);
+        }
+
+        // Filter out nested selects (handled in "with" query)
+        $compiledSelects = array_filter(
+            $this->model->validatedApiFields(ColumnNameSanitizer::sanitizeArray($select)),
+            static function ($column) {
+                return (strpos($column, '.') === false);
+            }
+        );
+
+        if (empty($compiledSelects)) {
+            return $query;
+        }
+
+        $table = $this->model->getTable();
+        $query->select(array_map(static function ($column) use ($table) {
+            return $table . '.' . $column;
+        }, $compiledSelects));
+
+        return $query;
+    }
+
+    /**
+     * @param Builder $query
+     * @param array|string $counts
+     *
+     * @return Builder
+     */
+    private function setCounts(Builder $query, $counts)
+    {
+        if (is_string($counts)) {
+            $counts = explode(',', $counts);
+            $compiledCounts = $this->model->validatedApiCounts(array_map(static function ($relation) {
+                return Str::camel($relation);
+            }, $counts));
+        } else {
+            $compiledCounts = [];
+            $allowedApiCounts = $this->model->allowedApiCounts();
+            foreach ($counts as $relation => $countQuery) {
+                $countRelation = Str::camel((is_string($relation)) ? $relation : $countQuery);
+
+                if (!in_array($countRelation, $allowedApiCounts, true)) {
+                    continue;
+                }
+
+                if (is_array($countQuery)) {
+                    $compiledCounts[$countRelation] = function (Builder $query) use ($countQuery) {
+                        $this->queryRecursive($query, $countQuery);
+                    };
+                } else {
+                    $compiledCounts[] = $countRelation;
+                }
+            }
+        }
+
+        $query->withCount($compiledCounts);
+
+        return $query;
+    }
+
+    /**
+     * @param Builder $query
+     * @param array|string $orderBy
+     *
+     * @return Builder
+     * @throws \Exception
+     */
+    private function setOrderBy(Builder $query, $orderBy)
+    {
+        if (is_string($orderBy)) {
+            $orderBy = explode(',', $orderBy);
+            $this->setOrder($query, $orderBy[0], $orderBy[1]);
+        } else {
+            foreach ($orderBy as $column => $order) {
+                $this->setOrder($query, $column, $order);
+            }
+        }
+
+        return $query;
+    }
+
+    /**
      * @param Builder $query
      * @param string  $column
      * @param string  $order
@@ -217,6 +338,24 @@ class QueryBuilder
             }
         } else {
             throw new HttpException(400, 'Sort order must be asc or desc');
+        }
+
+        return $query;
+    }
+
+    /**
+     * @param Builder $query
+     * @param array|string $groupBy
+     *
+     * @return Builder
+     */
+    private function setGroupBy(Builder $query, $groupBy)
+    {
+        if (is_string($groupBy)) {
+            $groupBy = explode(',', $groupBy);
+            $query->groupBy(ColumnNameSanitizer::sanitizeArray($groupBy));
+        } else {
+            $query->groupBy(ColumnNameSanitizer::sanitizeArray($groupBy));
         }
 
         return $query;
