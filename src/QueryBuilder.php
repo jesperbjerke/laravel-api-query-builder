@@ -600,13 +600,14 @@ class QueryBuilder
     {
         // Complex query (eg. whereHas[bookings][where][bookable_type]=test)
         if (is_string($relation)) {
-            if (in_array($this->getRelationName($relation), $this->model->allowedApiRelations(), true)) {
-                $query->{$method}($relation, function ($query) use ($relation, $params) {
+            $relationName = $this->getRelationName($relation);
+            if (in_array($relationName, $this->model->allowedApiRelations(), true)) {
+                $query->{$method}($relationName, function ($query) use ($relationName, $params) {
                     foreach ($params as $column => $value) {
                         if (in_array($column, $this->queryMethods, true)) {
                             foreach ($value as $subColumn => $subValue) {
                                 if (strpos($subColumn, '.') === false) {
-                                    $subColumn = $this->model->{$relation}()
+                                    $subColumn = $this->model->{$relationName}()
                                                              ->getRelated()
                                                              ->getTable() . '.' . $subColumn;
                                 }
@@ -614,7 +615,7 @@ class QueryBuilder
                             }
                         } else {
                             if (strpos($column, '.') === false) {
-                                $column = $this->model->{$relation}()->getRelated()->getTable() . '.' . $column;
+                                $column = $this->model->{$relationName}()->getRelated()->getTable() . '.' . $column;
                             }
                             $this->performQuery($query, 'where', $column, $value);
                         }
