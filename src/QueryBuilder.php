@@ -329,7 +329,7 @@ class QueryBuilder
                 $query->orderByRaw(implode('', [
                     $sanitizedColumn,
                     ' COLLATE ',
-                    config('collations.locale.' . App::getLocale(), 'utf8mb4_unicode_ci'),
+                    config('querybuilder.collations.locale.' . App::getLocale(), 'utf8mb4_unicode_ci'),
                     ' ',
                     Str::replaceFirst('localized', '', $order)
                 ]));
