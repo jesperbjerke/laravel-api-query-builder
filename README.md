@@ -168,6 +168,8 @@ Parameters:
     Optionally set to true  to treat spaces as delimiters for keywords,
     i.e "Jesper Bjerke" will result a query for all "Jesper" and all "Bjerke"
     Without split, it will treat it as a single keyword and match on full "Jesper Bjerke"
+- json: Boolean. Defaults to false.
+    If the search column is json and you want the search to be case insensitive, set this to true.
 ```
 
 ---
