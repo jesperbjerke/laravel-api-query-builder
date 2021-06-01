@@ -327,14 +327,14 @@ class QueryBuilder
 
             if (Str::startsWith($order, 'localized')) {
                 $query->orderByRaw(implode('', [
-                    $sanitizedColumn,
+                    $query->getGrammar()->wrap($sanitizedColumn),
                     ' COLLATE ',
                     config('querybuilder.collations.locale.' . App::getLocale(), 'utf8mb4_unicode_ci'),
                     ' ',
                     Str::replaceFirst('localized', '', $order)
                 ]));
             } else {
-                $query->orderByRaw($sanitizedColumn . ' ' . $order);
+                $query->orderByRaw($query->getGrammar()->wrap($sanitizedColumn) . ' ' . $order);
             }
         } else {
             throw new HttpException(400, 'Sort order must be asc or desc');
@@ -710,6 +710,35 @@ class QueryBuilder
             throw new HttpException(400, 'Search columns missing');
         }
 
+        $caseInsensitiveJSON = (isset($options['json']) && !empty($options['json'])) ? $options['json'] : false;
+        if ($caseInsensitiveJSON === true || $caseInsensitiveJSON === 'true') {
+            $this->caseInsensitiveJsonSearch($query, $columns, $value);
+        } else {
+            $this->likeSearch($query, $columns, $value);
+        }
+
+        return $query;
+    }
+
+    private function caseInsensitiveJsonSearch($query, $columns, $value)
+    {
+        $query->where(static function (Builder $query) use ($columns, $value) {
+            foreach ($columns as $column) {
+                $column = ColumnNameSanitizer::sanitize($column);
+
+                if (is_string($value)) {
+                    $query->orWhereRaw('LOWER(' . $query->getGrammar()->wrap($column) . ') like ?', ['%' . Str::lower($value) . '%']);
+                } else {
+                    foreach ($value as $val) {
+                        $query->orWhereRaw('LOWER(' . $query->getGrammar()->wrap($column) . ') like ?', ['%' . Str::lower($val) . '%']);
+                    }
+                }
+            }
+        });
+        return $query;
+    }
+
+    private function likeSearch($query, $columns, $value) {
         $query->where(static function (Builder $query) use ($columns, $value) {
             foreach ($columns as $column) {
                 $column = ColumnNameSanitizer::sanitize($column);
