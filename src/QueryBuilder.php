@@ -320,21 +320,23 @@ class QueryBuilder
                         $query,
                         [ColumnNameSanitizer::sanitize($stack[1])]
                     )->toSql() . ' limit 1)';
+                } else {
+                    return $query;
                 }
             } else {
-                $sanitizedColumn = ColumnNameSanitizer::sanitize($column);
+                $sanitizedColumn = $query->getGrammar()->wrap(ColumnNameSanitizer::sanitize($column));
             }
 
             if (Str::startsWith($order, 'localized')) {
                 $query->orderByRaw(implode('', [
-                    $query->getGrammar()->wrap($sanitizedColumn),
+                    $sanitizedColumn,
                     ' COLLATE ',
                     config('querybuilder.collations.locale.' . App::getLocale(), 'utf8mb4_unicode_ci'),
                     ' ',
                     Str::replaceFirst('localized', '', $order)
                 ]));
             } else {
-                $query->orderByRaw($query->getGrammar()->wrap($sanitizedColumn) . ' ' . $order);
+                $query->orderByRaw($sanitizedColumn . ' ' . $order);
             }
         } else {
             throw new HttpException(400, 'Sort order must be asc or desc');
