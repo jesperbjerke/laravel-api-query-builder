@@ -61,6 +61,8 @@ For example `where` and `orWhere`.
 - [whereNotIn](#wherenotin--orwherenotin)
 - [whereBetween](#wherebetween--orwherebetween)
 - [whereNotBetween](#wherenotbetween--orwherenotbetween)
+- [whereNull](#wherenull--orwherenull)
+- [whereNotNull](#wherenotnull--orwherenotnull)
 - [whereHas](#wherehas--orwherehas)
 - [whereDoesntHave](#wheredoesnthave--orwheredoesnthave)
 - [search](#search)
@@ -126,6 +128,18 @@ or
 ### whereNotBetween / orWhereNotBetween
 
 Same as [whereBetween / orWhereBetween](#wherenotbetween-orwherenotbetween), but matches the value should be outside of provided range.
+
+---
+
+### whereNull / orWhereNull
+```
+?whereNull[]=updated_at
+```
+---
+
+### whereNotNull / orWhereNotNull
+
+Same as [whereNotNull / orWhereNotNull](#wherenotnull-orwherenotnull), but matches the value should not be null.
 
 ---
 
