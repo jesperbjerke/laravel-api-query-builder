@@ -95,7 +95,7 @@ __These methods are recursive. Meaning you can wrap multiple statements in a par
 
 ### whereIn / orWhereIn
 
-Similar to [where / orWhere](#where-orwhere), but matches a list of values. Values can be defined as a comma-separated string or as an actual array.
+Similar to [where / orWhere](#where--orwhere), but matches a list of values. Values can be defined as a comma-separated string or as an actual array.
 ```
 ?whereIn[id]=1,2,3
 ```
@@ -108,7 +108,7 @@ or
 
 ### whereNotIn / orWhereNotIn
 
-Same as [whereNotIn / orWhereNotIn](#wherenotin-orwherenotin), but matches the absence of provided values. 
+Same as [whereNotIn / orWhereNotIn](#wherenotin--orwherenotin), but matches the absence of provided values. 
 
 ---
 
@@ -127,7 +127,7 @@ or
 
 ### whereNotBetween / orWhereNotBetween
 
-Same as [whereBetween / orWhereBetween](#wherenotbetween-orwherenotbetween), but matches the value should be outside of provided range.
+Same as [whereBetween / orWhereBetween](#wherenotbetween--orwherenotbetween), but matches the value should be outside of provided range.
 
 ---
 
@@ -139,7 +139,7 @@ Same as [whereBetween / orWhereBetween](#wherenotbetween-orwherenotbetween), but
 
 ### whereNotNull / orWhereNotNull
 
-Same as [whereNull / orWhereNull](#wherenull-orwherenull), but matches the value should not be null.
+Same as [whereNull / orWhereNull](#wherenull--orwherenull), but matches the value should not be null.
 
 ---
 
@@ -164,7 +164,7 @@ Advanced querying. Will accept most query methods:
 
 ### whereDoesntHave / orWhereDoesntHave
 
-Same as [whereHas / orWhereHas](#wheredoesnthave-orwheredoesnthave), but matches the absence of a relation.
+Same as [whereHas / orWhereHas](#wheredoesnthave--orwheredoesnthave), but matches the absence of a relation.
 
 ---
 
