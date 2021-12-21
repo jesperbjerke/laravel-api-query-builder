@@ -65,6 +65,7 @@ For example `where` and `orWhere`.
 - [whereNotNull](#wherenotnull--orwherenotnull)
 - [whereHas](#wherehas--orwherehas)
 - [whereDoesntHave](#wheredoesnthave--orwheredoesnthave)
+- [whereDate](#wheredate) (whereDate / whereMonth / whereDay / whereYear / whereTime),
 - [search](#search)
 - [select](#select)
 - [orderBy](#orderby)
@@ -84,7 +85,7 @@ The following will do an exact match where `first_name` equals `test`
 ```
 ?where[first_name]=test
 ```
-You can also do more advanced matching by defining an operator (`=`, `!=`, `like`). When defining an operator you also need to define a `value` parameter.
+You can also do more advanced matching by defining an operator (`=`, `!=`, `like`, `>`, `<`). When defining an operator you also need to define a `value` parameter.
 The following will perform a `like` query matching on `%test%`
 ```
 ?where[first_name][value]=%25test%25&where[first_name][operator]=like
@@ -165,6 +166,19 @@ Advanced querying. Will accept most query methods:
 ### whereDoesntHave / orWhereDoesntHave
 
 Same as [whereHas / orWhereHas](#wheredoesnthave--orwheredoesnthave), but matches the absence of a relation.
+
+---
+
+### whereDate
+
+Query by date. All abbreviations of this method are: whereDate / whereMonth / whereDay / whereYear / whereTime.
+```
+?whereDate[created_at]=2016-12-31
+```
+You can also do more advanced matching by defining an operator (`=`, `!=`, `>`, `<`). When defining an operator you also need to define a `value` parameter.
+```
+?whereDate[created_at][value]=2016-12-31&where[created_at][operator]=<
+```
 
 ---
 

@@ -31,6 +31,16 @@ class QueryBuilder
         'orWhereHas',
         'whereDoesntHave',
         'orWhereDoesntHave',
+        'whereDate',
+        'orWhereDate',
+        'whereDay',
+        'orWhereDay',
+        'whereMonth',
+        'orWhereMonth',
+        'whereYear',
+        'orWhereYear',
+        'whereTime',
+        'orWhereTime',
         'search'
     ];
 
@@ -537,6 +547,16 @@ class QueryBuilder
         switch ($method) {
             case 'where':
             case 'orWhere':
+            case 'whereDate':
+            case 'orWhereDate':
+            case 'whereDay':
+            case 'orWhereDay':
+            case 'whereMonth':
+            case 'orWhereMonth':
+            case 'whereYear':
+            case 'orWhereYear':
+            case 'whereTime':
+            case 'orWhereTime':
                 $column = ColumnNameSanitizer::sanitize($column);
                 if (!in_array($column, $this->model->validatedApiFields([$column]), true)) {
                     return $query;
@@ -555,6 +575,9 @@ class QueryBuilder
             case 'whereNotNull':
             case 'orWhereNotNull':
                 $column = ColumnNameSanitizer::sanitize($value);
+                if (!in_array($column, $this->model->validatedApiFields([$column]), true)) {
+                    return $query;
+                }
                 $query->{$method}($column);
                 break;
             case 'whereHas':
