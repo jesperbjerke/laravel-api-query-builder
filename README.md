@@ -139,7 +139,7 @@ Same as [whereBetween / orWhereBetween](#wherenotbetween-orwherenotbetween), but
 
 ### whereNotNull / orWhereNotNull
 
-Same as [whereNotNull / orWhereNotNull](#wherenotnull-orwherenotnull), but matches the value should not be null.
+Same as [whereNull / orWhereNull](#wherenull-orwherenull), but matches the value should not be null.
 
 ---
 
