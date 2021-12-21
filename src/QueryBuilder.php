@@ -23,6 +23,10 @@ class QueryBuilder
         'orWhereBetween',
         'whereNotBetween',
         'orWhereNotBetween',
+        'whereNull',
+        'orWhereNull',
+        'whereNotNull',
+        'orWhereNotNull',
         'whereHas',
         'orWhereHas',
         'whereDoesntHave',
@@ -545,6 +549,13 @@ class QueryBuilder
                 } else {
                     $query->{$method}($column, $this->formatValue($value));
                 }
+                break;
+            case 'whereNull':
+            case 'orWhereNull':
+            case 'whereNotNull':
+            case 'orWhereNotNull':
+                $column = ColumnNameSanitizer::sanitize($value);
+                $query->{$method}($column);
                 break;
             case 'whereHas':
             case 'orWhereHas':
